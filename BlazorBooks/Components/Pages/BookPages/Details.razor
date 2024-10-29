@@ -1,0 +1,57 @@
+﻿@page "/books/details"
+@using Microsoft.EntityFrameworkCore
+@using BlazorBooks.Models
+@inject IDbContextFactory<BlazorBooks.Data.BlazorBooksContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Book</h2>
+    <hr />
+    @* 書籍データがDBから取得されるまではロード中表示 *@
+    @if (book is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Title</dt>
+            <dd class="col-sm-10">@book.Title</dd>
+            <dt class="col-sm-2">Author</dt>
+            <dd class="col-sm-10">@book.Author</dd>
+            <dt class="col-sm-2">Publisher</dt>
+            <dd class="col-sm-10">@book.Publisher</dd>
+            <dt class="col-sm-2">PublishedYear</dt>
+            <dd class="col-sm-10">@book.PublishedYear</dd>
+        </dl>
+        <div>
+            <a href="@($"/books/edit?id={book.Id}")">Edit</a> |
+            <a href="@($"/books")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Book? book;
+
+    // クエリ文字列のIDを保持するプライベート変数
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        // Bookテーブル内のIDとクエリ文字列のIDが一致するデータを1件取得してbook変数に格納する
+        book = await context.Book.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (book is null)
+        {
+            // notfoundページに遷移する
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

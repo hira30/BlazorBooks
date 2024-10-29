@@ -1,0 +1,47 @@
+﻿@page "/books"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using BlazorBooks.Models
+@using BlazorBooks.Data
+
+@* IAsyncDisposableインターフェースの実装 *@
+@implements IAsyncDisposable
+
+@* DbContextFactoryサービスの注入 *@
+@inject IDbContextFactory<BlazorBooks.Data.BlazorBooksContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+     @* Createページに遷移 *@
+    <a href="books/create">Create New</a>
+</p>
+
+@* Bookテーブルの中身を表形式で表示 *@
+<QuickGrid Class="table" Items="context.Book">
+    <PropertyColumn Property="book => book.Title" />
+    <PropertyColumn Property="book => book.Author" />
+    <PropertyColumn Property="book => book.Publisher" />
+    <PropertyColumn Property="book => book.PublishedYear" />
+
+    <TemplateColumn Context="book">
+        <a href="@($"books/edit?id={book.Id}")">Edit</a> |
+        <a href="@($"books/details?id={book.Id}")">Details</a> |
+        <a href="@($"books/delete?id={book.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private BlazorBooksContext context = default!;
+
+    // コンポーネント初期化時にDbContextを生成してプライベート変数に格納
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    // コンポーネントが破棄される際にDbContextを破棄する
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

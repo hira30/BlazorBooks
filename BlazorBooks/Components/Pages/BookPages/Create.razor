@@ -1,0 +1,69 @@
+﻿@page "/books/create"
+@using Microsoft.EntityFrameworkCore
+@using BlazorBooks.Models
+@inject IDbContextFactory<BlazorBooks.Data.BlazorBooksContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Book</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+
+        @* 登録フォーム *@
+        <EditForm method="post" Model="Book" OnValidSubmit="AddBook" FormName="create" Enhance>
+            @* 属性バリデーションを使用する *@
+            <DataAnnotationsValidator />
+
+            @* バリデーション時のエラーメッセージを全て表示する *@
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="title" class="form-label">Title:</label> 
+                <InputText id="title" @bind-Value="Book.Title" class="form-control" />
+                @* バリデーション時のエラーメッセージを個別に表示する *@
+                <ValidationMessage For="() => Book.Title" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="author" class="form-label">Author:</label> 
+                <InputText id="author" @bind-Value="Book.Author" class="form-control" /> 
+                <ValidationMessage For="() => Book.Author" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="publisher" class="form-label">Publisher:</label> 
+                <InputText id="publisher" @bind-Value="Book.Publisher" class="form-control" /> 
+                <ValidationMessage For="() => Book.Publisher" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="publishedyear" class="form-label">PublishedYear:</label> 
+                <InputNumber id="publishedyear" @bind-Value="Book.PublishedYear" class="form-control" /> 
+                <ValidationMessage For="() => Book.PublishedYear" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/books">Back to List</a>
+</div>
+
+@code {
+    // フォームから送信された情報を保持するプロパティ
+    [SupplyParameterFromForm]
+    private Book Book { get; set; } = new();
+
+    // Createボタン押下時に呼び出される
+    private async Task AddBook()
+    {
+        // フォームの内容をBookテーブルにINSERTする
+        using var context = DbFactory.CreateDbContext();
+        context.Book.Add(Book);
+        await context.SaveChangesAsync();
+
+        // Indexページにリダイレクトする
+        NavigationManager.NavigateTo("/books");
+    }
+}
